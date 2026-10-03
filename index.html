@@ -203,6 +203,9 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .fqh .grip { flex: 1; display: flex; justify-content: center; }
 .fqh .grip::before { content: ''; width: 44px; height: 4px; border-radius: 2px; background: var(--line); }
 .fqh .mini { width: 38px; height: 32px; font-size: 15px; }
+.ghost { opacity: .4; }
+.ghostbtn { width: auto !important; padding: 0 9px; font-size: 13px; font-weight: 600; }
+.ghostbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .fqh #fqKbd, .fqh #fqMore { width: auto; padding: 0 9px; font-size: 13px; font-weight: 600; }
 #fqForm { display: flex; gap: 6px; }
 #fqIn { flex: 1; min-width: 0; padding: 9px 10px; font-size: 16px; font-family: var(--font-mono); border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--fg); }
@@ -324,6 +327,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
 
     <div id="fq" role="group" aria-label="수식 입력" hidden>
       <div class="fqh" id="fqHandle" title="끌어서 옮길 수 있어요"><strong>수식 입력</strong><span class="grip"></span>
+        <button type="button" class="mini ghostbtn" id="fqGhost" aria-pressed="false" aria-label="입력창 투명하게" title="투명하게 (그래프가 비쳐 보여요)">투명</button>
         <button type="button" class="mini" id="fqKbd" aria-label="휴대폰 기본 키보드로 입력" aria-pressed="false" title="켜면 휴대폰 기본 키보드로 입력, 끄면 수식 키패드">키보드</button>
         <button type="button" class="mini" id="fqMore" aria-label="그래프 목록·설정 열기" title="그래프 목록·설정">수식홈</button>
         <button type="button" class="mini" id="fqMin" aria-label="작게 줄이기" title="작게">–</button></div>
@@ -354,6 +358,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
 
     <aside id="math" aria-label="좌표와 그래프">
       <div class="ph"><strong>좌표·그래프</strong><span class="phb">
+        <button type="button" class="mini ghostbtn" id="pGhost" aria-pressed="false" aria-label="패널 투명하게" title="투명하게 (그래프가 비쳐 보여요)">투명</button>
         <button type="button" class="mini cmp" id="pUndo" aria-label="실행 취소" title="실행 취소"></button>
         <button type="button" class="mini cmp" id="pRedo" aria-label="다시 실행" title="다시 실행"></button>
         <button class="mini" id="mathClose" aria-label="패널 닫기">×</button></span></div>
@@ -2422,7 +2427,13 @@ const isMobile = () => true; // PC·모바일 모두 같은 메뉴(플로팅 수
    ============================================================ */
 const FQ_KEY = 'wb-fq-v1';
 const fq = { el: $('#fq'), fab: $('#fqFab'), inp: $('#fqIn'), kb: 0, st: { mode: 'fab', bar: null, fab: null, panel: null } };
-try { const s = JSON.parse(localStorage.getItem(FQ_KEY) || 'null'); if (s && typeof s === 'object') { fq.st.mode = s.mode === 'open' ? 'open' : 'fab'; fq.st.os = !!s.os; for (const k of ['bar', 'fab', 'panel']) if (s[k] && isFinite(s[k].x) && isFinite(s[k].y)) fq.st[k] = { x: +s[k].x, y: +s[k].y }; } } catch (e) { /* 저장소를 못 쓰는 환경 */ }
+try { const s = JSON.parse(localStorage.getItem(FQ_KEY) || 'null'); if (s && typeof s === 'object') { fq.st.mode = s.mode === 'open' ? 'open' : 'fab'; fq.st.os = !!s.os; fq.st.ghost = !!s.ghost; for (const k of ['bar', 'fab', 'panel']) if (s[k] && isFinite(s[k].x) && isFinite(s[k].y)) fq.st[k] = { x: +s[k].x, y: +s[k].y }; } } catch (e) { /* 저장소를 못 쓰는 환경 */ }
+function fqGhostApply() {
+  const on = !!fq.st.ghost;
+  for (const id of ['math', 'fq', 'kdock']) { const e = document.getElementById(id); if (e) e.classList.toggle('ghost', on); }
+  for (const id of ['pGhost', 'fqGhost']) { const b = document.getElementById(id); if (b) b.setAttribute('aria-pressed', String(on)); }
+}
+function fqGhostToggle() { fq.st.ghost = !fq.st.ghost; fqSave(); fqGhostApply(); }
 function fqSave() { try { localStorage.setItem(FQ_KEY, JSON.stringify(fq.st)); } catch (e) { /* 무시 */ } }
 function fqClampPos(el, p) {
   const st = $('#stage'), w = st.clientWidth, h = st.clientHeight - fq.kb;
@@ -2524,6 +2535,7 @@ for (const [label, code, gray] of FQ_NUM) {
   k.addEventListener('click', () => fqKey(code === undefined ? label : code)); $('#fqR').appendChild(k);
 }
 fqBuildPad(1);
+$('#pGhost').addEventListener('click', fqGhostToggle); $('#fqGhost').addEventListener('click', fqGhostToggle); fqGhostApply();
 $('#fqPg1').addEventListener('click', () => fqBuildPad(1)); $('#fqPg2').addEventListener('click', () => fqBuildPad(2));
 // 키패드를 눌러도 입력칸의 포커스가 빠지지 않게 한다(입력칸 자체만 예외)
 fq.el.addEventListener('pointerdown', (e) => { if (e.target !== fq.inp) e.preventDefault(); });
