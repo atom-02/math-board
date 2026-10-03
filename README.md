@@ -13,4 +13,8 @@
 `index.html` 한 파일로 동작합니다. GitHub Pages로 배포하거나 파일을 내려받아 브라우저에서 열면 됩니다.
 
 ## 저작권
-Copyright (c) 2026 atom-math. All rights reserved. 저작권은 atom-math에 있습니다. 자세한 내용은 [LICENSE](LICENSE)를 보세요.
+Copyright (c) 2026 atom-math. 저작권은 atom-math에 있습니다. 복제·수정·재배포는 자유롭게 할 수 있습니다.
+- 수정하거나 재배포할 때는 **원본 소스 코드가 atom-math에 있다**는 점을 밝혀 주세요.
+- **영리 목적**으로 쓰려면 저작권자와 먼저 협의해야 합니다.
+
+자세한 내용은 [LICENSE](LICENSE)를 보세요.

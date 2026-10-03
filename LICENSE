@@ -1,9 +1,12 @@
-Copyright (c) 2026 atom-math. All rights reserved.
+Copyright (c) 2026 atom-math
 
 저작권은 atom-math에 있습니다.
-이 저장소의 소스 코드와 문서는 저작권자의 사전 허락 없이 복제, 수정, 재배포,
-상업적 이용을 할 수 없습니다. 수업에서 화면으로 사용하는 것은 자유롭게 할 수 있습니다.
 
-All rights reserved. No part of this software may be copied, modified, redistributed
-or used commercially without prior written permission from the copyright holder.
-Using the app on screen in the classroom is permitted.
+이 저장소의 소스 코드와 문서는 복제, 수정, 재배포를 자유롭게 할 수 있습니다.
+- 수정하거나 재배포할 때는 원본 소스 코드가 atom-math에 있다는 점을 밝혀야 합니다.
+- 영리 목적으로 사용하려는 경우에는 저작권자(atom-math)와 먼저 협의해야 합니다.
+
+Copyright holder: atom-math.
+You may copy, modify and redistribute this software and its documentation freely, provided that
+- any modified or redistributed version states that the original source code is by atom-math, and
+- any commercial (for-profit) use is agreed with the copyright holder beforehand.
