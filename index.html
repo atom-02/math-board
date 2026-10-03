@@ -2727,11 +2727,11 @@ function renderGraphList() {
       g.mv.on = !g.mv.on; if (!g.mv.on) setOut(g, 'm', ''); else setTool('shift');
       renderGraphList(); markDirty(true, false); persist();
     });
-    btns.append(tb, eb, ab, mb); tr.appendChild(btns);
+    btns.append(mb, tb, eb, ab); tr.appendChild(btns);
+    if (mon) tr.appendChild(buildMoveBox(g));
     if (on) tr.appendChild(buildTanBox(g));
     if (g.ex) { const o = document.createElement('div'); o.className = 'tout xout'; o.id = 'gx-' + g.id; o.textContent = (g._o && g._o.x) || ''; tr.appendChild(o); }
     if (aon) tr.appendChild(buildAreaBox(g));
-    if (mon) tr.appendChild(buildMoveBox(g));
     li.append(dot, inp, eye, del, info, tr); ul.appendChild(li);
   }
   refreshInfos();
