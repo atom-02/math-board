@@ -300,11 +300,6 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
     <div class="grp" id="colors" role="group" aria-label="색"></div>
     <span class="sep"></span>
     <div class="grp" id="widths" role="group" aria-label="굵기"></div>
-    <span class="sep"></span>
-    <div class="grp">
-      <button class="btn" id="undo" aria-label="실행 취소 (Ctrl+Z)" title="실행 취소 (Ctrl+Z)"></button>
-      <button class="btn" id="redo" aria-label="다시 실행 (Ctrl+Shift+Z)" title="다시 실행 (Ctrl+Shift+Z)"></button>
-    </div>
     <span class="sep sepz"></span>
     <div class="grp zgrp">
       <button class="btn" id="zout" aria-label="축소 (−)" title="축소 (−)"></button>
@@ -2060,7 +2055,7 @@ function doRedo() {
   else for (const it of a.items) { const i = S.objs.indexOf(it.o); if (i >= 0) S.objs.splice(i, 1); }
   S.undo.push(a); markDirty(false, true); syncHistory(); persist();
 }
-function syncHistory() { $('#undo').disabled = $('#fqUndo').disabled = $('#pUndo').disabled = !S.undo.length; $('#redo').disabled = $('#fqRedo').disabled = $('#pRedo').disabled = !S.redo.length; }
+function syncHistory() { $('#fqUndo').disabled = $('#pUndo').disabled = !S.undo.length; $('#fqRedo').disabled = $('#pRedo').disabled = !S.redo.length; }
 
 /* ============================================================
    9. 입력 처리
@@ -2259,7 +2254,6 @@ const TOOLS = [
 ];
 const toolsEl = $('#tools');
 for (const t of TOOLS) {
-  if (t.id === 'shift') continue; // 도구줄에는 두지 않음(그래프의 이동·대칭을 켜면 자동 선택, 단축키 S)
   const b = document.createElement('button');
   b.className = 'btn'; b.dataset.tool = t.id; b.setAttribute('aria-pressed', 'false');
   b.setAttribute('aria-label', `${t.n} (${t.key})`); b.title = `${t.n} (${t.key})`; b.innerHTML = svg(t.id);
@@ -2284,7 +2278,6 @@ WIDTHS.forEach((w, i) => {
   b.addEventListener('click', () => setWidth(i));
   widthsEl.appendChild(b);
 });
-$('#undo').innerHTML = svg('undo'); $('#redo').innerHTML = svg('redo');
 $('#zout').innerHTML = svg('minus'); $('#zin').innerHTML = svg('plus'); $('#zhome').innerHTML = svg('home');
 $('#saveBtn').innerHTML = svg('save'); $('#clearBtn').innerHTML = svg('trash'); $('#helpBtn').innerHTML = svg('help');
 
@@ -2340,8 +2333,6 @@ function zoomCenter(f) { zoomAt(W / 2, H / 2, V.k * f); }
 $('#zin').addEventListener('click', () => zoomCenter(1.25));
 $('#zout').addEventListener('click', () => zoomCenter(0.8));
 $('#zhome').addEventListener('click', () => { V.k = 1; V.ox = W / 2; V.oy = H / 2; markDirty(); persist(); });
-$('#undo').addEventListener('click', doUndo);
-$('#redo').addEventListener('click', doRedo);
 
 /* 전체 지우기 (두 번 눌러 확인) */
 let clearArmed = 0;
