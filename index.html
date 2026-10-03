@@ -323,7 +323,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
     <div id="fq" role="group" aria-label="수식 입력" hidden>
       <div class="fqh" id="fqHandle" title="끌어서 옮길 수 있어요"><strong>수식 입력</strong><span class="grip"></span>
         <button type="button" class="mini" id="fqKbd" aria-label="휴대폰 기본 키보드로 입력" aria-pressed="false" title="켜면 휴대폰 기본 키보드로 입력, 끄면 수식 키패드">키보드</button>
-        <button type="button" class="mini" id="fqMore" aria-label="그래프 목록·설정 열기" title="그래프 목록·설정">목록</button>
+        <button type="button" class="mini" id="fqMore" aria-label="그래프 목록·설정 열기" title="그래프 목록·설정">수식홈</button>
         <button type="button" class="mini" id="fqMin" aria-label="작게 줄이기" title="작게">–</button></div>
       <form id="fqForm" autocomplete="off">
         <input id="fqIn" type="text" enterkeyhint="done" placeholder="식 입력  예) y=x^2-4" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="그래프 식">
@@ -410,7 +410,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
           <li>다항: <code>y=x^3-3x</code>, <code>y=(x-1)(x+2)^2</code></li>
           <li>유리: <code>y=(2x+1)/(x-1)</code>, <code>y=1/(x^2-1)</code> (점근선이 점선으로 나와요)</li>
           <li>무리: <code>y=sqrt(x+2)</code>, <code>y=√(4-x^2)</code>, <code>y=-sqrt(x)+1</code></li>
-          <li>휴대폰·태블릿(좁은 화면): 오른쪽 아래의 <b>f(x)</b> 둥근 버튼을 누르면 칠판 위에 떠 있는 <b>수식 입력창</b>이 열려요. 윗줄을 잡고 끌어서 옮기고, <b>–</b>로 줄이고, <b>목록</b> 버튼으로 그래프 목록·설정을 열어요. 입력칸을 누르면 숫자·기호·함수 <b>키패드</b>가 나와요(기호/함수 탭). 휴대폰 기본 키보드를 쓰려면 <b>키보드</b> 버튼을 누르세요(다시 누르면 키패드). 이 패널의 <b>새 식 입력칸</b>을 눌러도 같은 수식 입력창이 열려요.</li>
+          <li>휴대폰·태블릿(좁은 화면): 오른쪽 아래의 <b>f(x)</b> 둥근 버튼을 누르면 칠판 위에 떠 있는 <b>수식 입력창</b>이 열려요. 윗줄을 잡고 끌어서 옮기고, <b>–</b>로 줄이고, <b>수식홈</b> 버튼으로 그래프 목록·설정을 열어요. 입력칸을 누르면 숫자·기호·함수 <b>키패드</b>가 나와요(기호/함수 탭). 휴대폰 기본 키보드를 쓰려면 <b>키보드</b> 버튼을 누르세요(다시 누르면 키패드). 이 패널의 <b>새 식 입력칸</b>을 눌러도 같은 수식 입력창이 열려요.</li>
           <li>접선: 그래프 줄 아래의 <b>접선</b> 버튼을 누른 뒤 <b>기울기</b>(예: 2), <b>접점</b>(x좌표, 원·타원 등은 y도 가능), <b>곡선 밖의 점</b>(P의 x, y) 중 하나를 고르고 값을 쓰면 접선과 방정식이 나와요. 분수(<code>1/2</code>)도 쓸 수 있어요. 접선은 y=f(x) 꼴과 이차곡선에서 쓸 수 있어요.</li>
           <li>지수: <code>y=2^x</code>, <code>y=e^(x-1)+2</code>, <code>y=(1/2)^x</code></li>
           <li>로그: <code>y=log2(x)</code>, <code>y=log(x)</code>(상용로그), <code>y=ln(x)</code></li>
