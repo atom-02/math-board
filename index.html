@@ -163,6 +163,25 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   padding: 12px 14px 14px; z-index: 10;
 }
 #math[hidden] { display: none; }
+.ph { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+#fq { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + var(--kb, 0px)); width: min(540px, calc(100% - 24px)); z-index: 12;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 8px 8px; }
+#fq[hidden], #fqFab[hidden] { display: none; }
+.fqh { display: flex; align-items: center; gap: 6px; padding: 2px 0 4px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.fqh strong { font-size: 13px; font-weight: 600; }
+.fqh .grip { flex: 1; display: flex; justify-content: center; }
+.fqh .grip::before { content: ''; width: 44px; height: 4px; border-radius: 2px; background: var(--line); }
+.fqh .mini { width: 38px; height: 32px; font-size: 15px; }
+#fqForm { display: flex; gap: 6px; }
+#fqIn { flex: 1; min-width: 0; padding: 9px 10px; font-size: 16px; font-family: var(--font-mono); border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--fg); }
+#fqIn:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+#fqForm button { min-height: 42px; padding: 0 14px; }
+#fqKeys { display: flex; gap: 5px; overflow-x: auto; margin-top: 6px; padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+#fqKeys::-webkit-scrollbar { display: none; }
+#fqKeys button { flex: none; min-width: 42px; height: 38px; padding: 0 9px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--fg); font-family: var(--font-mono); font-size: 15px; }
+#fqKeys button:active { background: var(--accent); color: var(--accent-fg); }
+#fqFab { position: absolute; right: 16px; bottom: calc(16px + var(--kb, 0px)); width: 54px; height: 54px; border-radius: 50%; z-index: 12; padding: 0;
+  border: 0; background: var(--accent); color: var(--accent-fg); font: italic 700 17px Georgia, "Times New Roman", serif; box-shadow: var(--shadow); touch-action: none; }
 .ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .ph strong { font-size: 15px; font-weight: 600; }
 .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
@@ -240,9 +259,8 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
 #toast.on { opacity: 1; }
 
 @media (max-width: 720px) {
-  #math { left: 16px; right: 16px; top: auto; bottom: 16px; width: auto; max-height: 56%; }
+  #math { left: 16px; right: 16px; top: auto; bottom: calc(16px + var(--kb, 0px)); width: auto; max-height: 48%; }
   .keys { grid-template-columns: 1fr; }
-  .opts { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
 </style>
@@ -280,6 +298,18 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
 
   <main id="stage">
     <canvas id="board" aria-label="칠판"></canvas>
+
+    <div id="fq" role="group" aria-label="수식 입력" hidden>
+      <div class="fqh" id="fqHandle" title="끌어서 옮길 수 있어요"><strong>수식 입력</strong><span class="grip"></span>
+        <button type="button" class="mini" id="fqMore" aria-label="그래프 목록·설정 열기" title="그래프 목록·설정">⚙</button>
+        <button type="button" class="mini" id="fqMin" aria-label="작게 줄이기" title="작게">–</button></div>
+      <form id="fqForm" autocomplete="off">
+        <input id="fqIn" type="text" enterkeyhint="done" placeholder="식 입력  예) y=x^2-4" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="그래프 식">
+        <button type="submit">추가</button>
+      </form>
+      <div id="fqKeys" aria-label="수식 기호"></div>
+    </div>
+    <button type="button" id="fqFab" aria-label="수식 입력 열기" title="수식 입력" hidden>f(x)</button>
 
     <aside id="math" aria-label="좌표와 그래프">
       <div class="ph"><strong>좌표·그래프</strong><button class="mini" id="mathClose" aria-label="패널 닫기">×</button></div>
@@ -328,6 +358,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
           <li>다항: <code>y=x^3-3x</code>, <code>y=(x-1)(x+2)^2</code></li>
           <li>유리: <code>y=(2x+1)/(x-1)</code>, <code>y=1/(x^2-1)</code> (점근선이 점선으로 나와요)</li>
           <li>무리: <code>y=sqrt(x+2)</code>, <code>y=√(4-x^2)</code>, <code>y=-sqrt(x)+1</code></li>
+          <li>휴대폰·태블릿(좁은 화면): 오른쪽 아래의 <b>f(x)</b> 둥근 버튼을 누르면 칠판 위에 떠 있는 <b>수식 입력창</b>이 열려요. 윗줄을 잡고 끌어서 옮기고, <b>–</b>로 줄이고, <b>⚙</b>로 그래프 목록·설정을 열어요. 아래 기호 줄(x, y, ^, √, π …)을 옆으로 밀어서 쓰세요.</li>
           <li>접선: 그래프 줄 아래의 <b>접선</b> 버튼을 누른 뒤 <b>기울기</b>(예: 2), <b>접점</b>(x좌표, 원·타원 등은 y도 가능), <b>곡선 밖의 점</b>(P의 x, y) 중 하나를 고르고 값을 쓰면 접선과 방정식이 나와요. 분수(<code>1/2</code>)도 쓸 수 있어요. 접선은 y=f(x) 꼴과 이차곡선에서 쓸 수 있어요.</li>
           <li>지수: <code>y=2^x</code>, <code>y=e^(x-1)+2</code>, <code>y=(1/2)^x</code></li>
           <li>로그: <code>y=log2(x)</code>, <code>y=log(x)</code>(상용로그), <code>y=ln(x)</code></li>
@@ -2322,10 +2353,119 @@ $('#fileIn').addEventListener('change', async (e) => {
    ============================================================ */
 const mathEl = $('#math');
 function setMathOpen(on) {
-  mathEl.hidden = !on; $('#mathBtn').setAttribute('aria-pressed', String(on));
+  mathEl.hidden = !on;
+  if (on && isMobile() && fq.st.panel) {
+    mathEl.style.width = Math.min(352, $('#stage').clientWidth - 32) + 'px'; mathEl.style.maxHeight = 'calc(100% - 24px)';
+    mathEl.style.right = 'auto'; mathEl.style.bottom = 'auto'; mathEl.style.left = fq.st.panel.x + 'px'; mathEl.style.top = fq.st.panel.y + 'px';
+  }
+  fqApply(); if (on) fqPlace();
 }
-$('#mathBtn').addEventListener('click', () => setMathOpen(mathEl.hidden));
-$('#mathClose').addEventListener('click', () => setMathOpen(false));
+const isMobile = () => window.innerWidth < 900;
+
+/* ============================================================
+   12-1. 수식 입력 플로팅 메뉴 (모바일): 칠판 위에 떠 있고, 끌어서 옮기고, 작은 버튼으로 줄일 수 있다
+   ============================================================ */
+const FQ_KEY = 'wb-fq-v1';
+const fq = { el: $('#fq'), fab: $('#fqFab'), inp: $('#fqIn'), kb: 0, st: { mode: 'fab', bar: null, fab: null, panel: null } };
+try { const s = JSON.parse(localStorage.getItem(FQ_KEY) || 'null'); if (s && typeof s === 'object') { fq.st.mode = s.mode === 'open' ? 'open' : 'fab'; for (const k of ['bar', 'fab', 'panel']) if (s[k] && isFinite(s[k].x) && isFinite(s[k].y)) fq.st[k] = { x: +s[k].x, y: +s[k].y }; } } catch (e) { /* 저장소를 못 쓰는 환경 */ }
+function fqSave() { try { localStorage.setItem(FQ_KEY, JSON.stringify(fq.st)); } catch (e) { /* 무시 */ } }
+function fqClampPos(el, p) {
+  const st = $('#stage'), w = st.clientWidth, h = st.clientHeight - fq.kb;
+  return { x: Math.round(Math.min(Math.max(0, p.x), Math.max(0, w - el.offsetWidth))), y: Math.round(Math.min(Math.max(0, p.y), Math.max(0, h - el.offsetHeight))) };
+}
+function fqApplyPos(el, p) {
+  if (!p) { for (const k of ['left', 'top', 'right', 'bottom', 'transform']) el.style[k] = ''; return; }
+  el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
+}
+function fqPlace() {
+  if (!fq.el.hidden && fq.st.bar) { const p = fqClampPos(fq.el, fq.st.bar); fqApplyPos(fq.el, p); }
+  if (!fq.fab.hidden && fq.st.fab) { const p = fqClampPos(fq.fab, fq.st.fab); fqApplyPos(fq.fab, p); }
+  if (!mathEl.hidden && mathEl.style.top) {
+    const p = fqClampPos(mathEl, { x: parseFloat(mathEl.style.left) || 0, y: parseFloat(mathEl.style.top) || 0 });
+    mathEl.style.left = p.x + 'px'; mathEl.style.top = p.y + 'px';
+  }
+}
+function fqApply() {
+  const mode = isMobile() ? fq.st.mode : 'off', panelOpen = !mathEl.hidden;
+  fq.el.hidden = !(mode === 'open' && !panelOpen);
+  fq.fab.hidden = !(mode === 'fab' && !panelOpen);
+  fqPlace(); syncMathBtn();
+}
+function fqSet(mode) { fq.st.mode = mode; fqSave(); fqApply(); if (mode === 'open') setTimeout(() => { try { fq.inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }, 60); }
+function syncMathBtn() {
+  const on = isMobile() ? (!mathEl.hidden || !fq.el.hidden) : !mathEl.hidden;
+  $('#mathBtn').setAttribute('aria-pressed', String(on));
+}
+function dragify(el, handle, opts) {
+  let d = null;
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!opts.fromButton && e.target.closest('button, input, label, select, a')) return;
+    const r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect();
+    d = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, sx: e.clientX, sy: e.clientY, moved: false, s, p: null };
+    try { handle.setPointerCapture(e.pointerId); } catch (err) { /* 무시 */ }
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) return;
+    if (!d.moved && opts.onStart) opts.onStart();
+    d.moved = true;
+    d.p = fqClampPos(el, { x: e.clientX - d.s.left - d.dx, y: e.clientY - d.s.top - d.dy });
+    fqApplyPos(el, d.p);
+  });
+  const end = (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dd = d; d = null;
+    if (dd.moved) opts.save(dd.p); else if (opts.tap) opts.tap();
+  };
+  handle.addEventListener('pointerup', end);
+  handle.addEventListener('pointercancel', () => { d = null; });
+}
+dragify(fq.el, $('#fqHandle'), { save: (p) => { fq.st.bar = p; fqSave(); } });
+dragify(fq.fab, fq.fab, { fromButton: true, save: (p) => { fq.st.fab = p; fqSave(); }, tap: () => fqSet('open') });
+dragify(mathEl, mathEl.querySelector('.ph'), { onStart: () => { mathEl.style.width = mathEl.offsetWidth + 'px'; mathEl.style.maxHeight = 'calc(100% - 24px)'; }, save: (p) => { fq.st.panel = p; fqSave(); } });
+$('#fqMin').addEventListener('click', () => fqSet('fab'));
+$('#fqMore').addEventListener('click', () => { fq.st.mode = 'fab'; setMathOpen(true); });
+function fqInsert(s) {
+  const inp = fq.inp;
+  if (document.activeElement !== inp) { try { inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }
+  const a = inp.selectionStart == null ? inp.value.length : inp.selectionStart, b = inp.selectionEnd == null ? a : inp.selectionEnd;
+  inp.setRangeText(s, a, b, 'end');
+}
+function fqBackspace() {
+  const inp = fq.inp, a = inp.selectionStart == null ? inp.value.length : inp.selectionStart, b = inp.selectionEnd == null ? a : inp.selectionEnd;
+  if (a !== b) inp.setRangeText('', a, b, 'end'); else if (a > 0) inp.setRangeText('', a - 1, a, 'end');
+}
+const FQ_KEYS = [['⌫', null], ['x', 'x'], ['y', 'y'], ['^', '^'], ['(', '('], [')', ')'], ['+', '+'], ['−', '-'], ['/', '/'], ['=', '='],
+  ['√', 'sqrt('], ['|x|', 'abs('], ['π', 'pi'], ['e', 'e'], ['sin', 'sin('], ['cos', 'cos('], ['tan', 'tan('], ['ln', 'ln('], ['log', 'log('], ['<', '<'], ['>', '>'], ['≤', '<='], ['≥', '>='], [';', ';'], ['지우기', 'CLR']];
+for (const [label, ins] of FQ_KEYS) {
+  const k = document.createElement('button'); k.type = 'button'; k.textContent = label;
+  k.setAttribute('aria-label', label === '⌫' ? '한 글자 지우기' : label);
+  k.addEventListener('pointerdown', (e) => e.preventDefault());
+  k.addEventListener('click', () => { if (ins === null) fqBackspace(); else if (ins === 'CLR') { fq.inp.value = ''; fq.inp.focus({ preventScroll: true }); } else fqInsert(ins); });
+  $('#fqKeys').appendChild(k);
+}
+$('#fqForm').addEventListener('submit', (e) => {
+  e.preventDefault(); const v = fq.inp.value.trim(); if (!v) return;
+  const g = addGraph(v);
+  if (g) { if (g._c.kind === 'error') toast(g._c.err); else { fq.inp.value = ''; toast('그래프에 추가했어요'); } }
+});
+function fqKeyboard() {
+  const vv = window.visualViewport; let kb = 0;
+  if (vv) kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  if (kb < 80) kb = 0;
+  if (kb !== fq.kb) { fq.kb = kb; document.documentElement.style.setProperty('--kb', kb + 'px'); fqPlace(); }
+}
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', fqKeyboard); window.visualViewport.addEventListener('scroll', fqKeyboard); }
+window.addEventListener('resize', () => { fqApply(); });
+
+function toggleMath() {
+  if (!isMobile()) { setMathOpen(mathEl.hidden); return; }
+  if (!mathEl.hidden) { setMathOpen(false); fqSet('open'); return; }
+  fqSet(fq.el.hidden ? 'open' : 'fab');
+}
+$('#mathBtn').addEventListener('click', toggleMath);
+$('#mathClose').addEventListener('click', () => { setMathOpen(false); if (isMobile()) fqSet('open'); });
 
 function syncAxesUI() {
   const A = S.axes;
@@ -2528,7 +2668,7 @@ document.addEventListener('keydown', (e) => {
   if (k === '+' || k === '=') { zoomCenter(1.25); return; }
   if (k === '-' || k === '_') { zoomCenter(0.8); return; }
   if (k === '0') { $('#zhome').click(); return; }
-  if (lk === 'g') { setMathOpen(mathEl.hidden); return; }
+  if (lk === 'g') { toggleMath(); return; }
   if (k === '?' || k === '/') { setHelp(true); }
 });
 document.addEventListener('keyup', (e) => { if (e.key === ' ') { spaceDown = false; canvas.classList.toggle('hand', S.tool === 'hand'); } });
@@ -2552,6 +2692,7 @@ function init() {
     addGraph('x^2+y^2=4', 'red');
   }
   setMathOpen(window.innerWidth >= 900);
+  fqApply(); fqKeyboard();
   syncAll(); buildSaveMenu();
   resize();
   new ResizeObserver(resize).observe(canvas);
