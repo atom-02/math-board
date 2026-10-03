@@ -3,13 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  수학 전자칠판
+  Copyright (c) 2026 atom-math. All rights reserved.
+  저작권은 atom-math에 있습니다. 허락 없는 복제·수정·재배포를 금지합니다.
+-->
+<meta name="author" content="atom-math">
+<meta name="copyright" content="© 2026 atom-math">
 <title>수학 전자칠판</title>
 <meta name="description" content="필기, 도형, 입체도형, 함수 그래프(이차곡선·유리·무리·지수·로그·삼각, 접선, 극값, 넓이)를 지원하는 수학 수업용 웹 전자칠판">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
 <style>
-/* Layout concept: 상단 얇은 도구줄 + 화면 가득 칠판. 수학 패널은 오른쪽에 떠 있고 좁은 화면에서는 아래 시트로 바뀐다. */
+/* Layout concept: 상단 얇은 도구줄 + 화면 가득 칠판. 좌표·그래프 패널(수식홈)과 수식 입력창은 칠판 위에 떠 있고, PC·모바일이 같은 구성을 쓴다. */
 :root {
   --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -306,6 +313,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
     <div class="grp" id="colors" role="group" aria-label="색"></div>
     <span class="sep"></span>
     <div class="grp" id="widths" role="group" aria-label="굵기"></div>
+    <!-- 아래 zgrp·rgrp 묶음은 화면에 보이지 않는다. 패널·수식 입력창의 버튼과 단축키가 이 버튼들을 대신 눌러 주는 연결용이다. -->
     <span class="sep sepz"></span>
     <div class="grp zgrp">
       <button class="btn" id="zout" aria-label="축소 (−)" title="축소 (−)"></button>
@@ -444,6 +452,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
         <h2>단축키</h2>
         <ul class="keys" id="keyList"></ul>
         <p class="tip">펜(스타일러스)을 한 번 쓰면 손가락은 화면 이동 전용이 돼서, 손바닥이 닿아도 선이 그려지지 않아요. 손가락 두 개로 확대·축소와 이동을 할 수 있어요.</p>
+        <p class="tip" style="font-size:12px">© 2026 atom-math · 저작권은 atom-math에 있습니다. 허락 없는 복제·수정·재배포를 금지합니다.</p>
         <p class="tip"><button class="txtbtn" id="helpClose" style="border-color:var(--line)">닫기 (Esc)</button></p>
       </div>
     </div>
@@ -2414,13 +2423,12 @@ $('#fileIn').addEventListener('change', async (e) => {
 const mathEl = $('#math');
 function setMathOpen(on) {
   mathEl.hidden = !on;
-  if (on && isMobile() && fq.st.panel) {
+  if (on && fq.st.panel) {
     mathEl.style.width = Math.min(352, $('#stage').clientWidth - 32) + 'px'; mathEl.style.maxHeight = 'calc(100% - 24px)';
     mathEl.style.right = 'auto'; mathEl.style.bottom = 'auto'; mathEl.style.left = fq.st.panel.x + 'px'; mathEl.style.top = fq.st.panel.y + 'px';
   }
   fqApply(); if (on) fqPlace();
 }
-const isMobile = () => true; // PC·모바일 모두 같은 메뉴(플로팅 수식 입력창)를 쓴다
 
 /* ============================================================
    12-1. 수식 입력 플로팅 메뉴 (모바일): 칠판 위에 떠 있고, 끌어서 옮기고, 작은 버튼으로 줄일 수 있다
@@ -2452,7 +2460,7 @@ function fqPlace() {
   }
 }
 function fqApply() {
-  const mode = isMobile() ? fq.st.mode : 'off', panelOpen = !mathEl.hidden;
+  const mode = fq.st.mode, panelOpen = !mathEl.hidden;
   fq.el.hidden = !(mode === 'open' && !panelOpen);
   fq.fab.hidden = !(mode === 'fab' && !panelOpen);
   fqPlace(); syncMathBtn();
@@ -2461,7 +2469,7 @@ function fqSet(mode) {
   if (mode === 'open' && fq.el.hidden) { fq.st.bar = null; fqApplyPos(fq.el, null); } // 열 때는 항상 가운데 아래에서 시작
   fq.st.mode = mode; fqSave(); fqApply(); if (mode === 'open') setTimeout(() => { try { fq.inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }, 60); }
 function syncMathBtn() {
-  const on = isMobile() ? (!mathEl.hidden || !fq.el.hidden) : !mathEl.hidden;
+  const on = !mathEl.hidden || !fq.el.hidden;
   $('#mathBtn').setAttribute('aria-pressed', String(on));
 }
 function dragify(el, handle, opts) {
@@ -2607,12 +2615,11 @@ $('#pHome').addEventListener('click', () => $('#zhome').click()); $('#pHelp').ad
 $('#pSave').addEventListener('click', (e) => toggleSaveMenu($('#pSave'), e));
 
 function toggleMath() {
-  if (!isMobile()) { setMathOpen(mathEl.hidden); return; }
   if (!mathEl.hidden) { setMathOpen(false); fqSet('open'); return; }
   fqSet(fq.el.hidden ? 'open' : 'fab');
 }
 $('#mathBtn').addEventListener('click', toggleMath);
-$('#mathClose').addEventListener('click', () => { setMathOpen(false); if (isMobile()) fqSet('fab'); }); // x: 패널을 닫고 둥근 f(x) 버튼만 남긴다
+$('#mathClose').addEventListener('click', () => { setMathOpen(false); fqSet('fab'); }); // x: 패널을 닫고 둥근 f(x) 버튼만 남긴다
 
 // 좁은 화면: 패널의 '새 식' 입력칸을 누르면 패널 대신 키패드가 있는 수식 입력창이 열린다
 function openFqFromPanel() {
