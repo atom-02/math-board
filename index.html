@@ -167,6 +167,15 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 #fq { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + var(--kb, 0px)); width: min(540px, calc(100% - 24px)); z-index: 12;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 8px 8px; }
 #fq[hidden], #fqFab[hidden] { display: none; }
+.phb { display: flex; gap: 6px; align-items: center; }
+.ptools { display: flex; align-items: center; gap: 6px; margin: 10px 0 2px; padding: 8px 0 2px; border-top: 1px solid var(--line); }
+.ptools .mini { width: 36px; height: 34px; flex: none; }
+.ptools .mini.warn { width: auto; padding: 0 10px; font-size: 12px; }
+.ptools .pct { min-width: 38px; text-align: center; font-size: 12px; color: var(--muted); }
+.ptools .gap { flex: 1; }
+.phb .mini { width: 34px; height: 32px; }
+.mini:disabled { opacity: .35; }
+@media (min-width: 1280px) { .cmp { display: none; } }
 #fqTools { display: flex; align-items: center; gap: 2px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 #fqTools::-webkit-scrollbar { display: none; }
 #fqTools .btn { width: 31px; height: 36px; flex: none; }
@@ -332,7 +341,10 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
     <button type="button" id="fqFab" aria-label="수식 입력 열기" title="수식 입력" hidden>f(x)</button>
 
     <aside id="math" aria-label="좌표와 그래프">
-      <div class="ph"><strong>좌표·그래프</strong><button class="mini" id="mathClose" aria-label="패널 닫기">×</button></div>
+      <div class="ph"><strong>좌표·그래프</strong><span class="phb">
+        <button type="button" class="mini cmp" id="pUndo" aria-label="실행 취소" title="실행 취소"></button>
+        <button type="button" class="mini cmp" id="pRedo" aria-label="다시 실행" title="다시 실행"></button>
+        <button class="mini" id="mathClose" aria-label="패널 닫기">×</button></span></div>
       <div class="opts">
         <label><input type="checkbox" id="optAxes"> 좌표축</label>
         <label><input type="checkbox" id="optGrid"> 격자</label>
@@ -369,6 +381,16 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
         <button type="button" class="chip" data-preset="ellipse">타원</button>
         <button type="button" class="chip" data-preset="parab">포물선</button>
         <button type="button" class="chip" data-preset="hyper">쌍곡선</button>
+      </div>
+      <div class="ptools cmp" role="toolbar" aria-label="보기·저장 도구">
+        <button type="button" class="mini" id="pZout" aria-label="축소" title="축소"></button>
+        <span class="pct" id="pPct">100%</span>
+        <button type="button" class="mini" id="pZin" aria-label="확대" title="확대"></button>
+        <button type="button" class="mini" id="pHome" aria-label="원점으로 돌아가기" title="원점으로"></button>
+        <span class="gap"></span>
+        <button type="button" class="mini" id="pSave" aria-label="저장·불러오기" title="저장·불러오기" aria-haspopup="menu"></button>
+        <button type="button" class="mini" id="pClear" aria-label="전체 지우기" title="전체 지우기"></button>
+        <button type="button" class="mini" id="pHelp" aria-label="도움말" title="도움말"></button>
       </div>
       <details>
         <summary>입력 방법</summary>
@@ -1942,7 +1964,7 @@ function render() {
     ctx.beginPath(); ctx.arc(hover.x, hover.y, ERASER_R, 0, 6.2832);
     ctx.lineWidth = 1.5; ctx.strokeStyle = T.axis; ctx.fillStyle = 'rgba(128,128,128,.14)'; ctx.fill(); ctx.stroke();
   }
-  $('#pct').textContent = Math.round(V.k * 100) + '%'; $('#fqPct').textContent = $('#pct').textContent;
+  $('#pct').textContent = Math.round(V.k * 100) + '%'; $('#fqPct').textContent = $('#pPct').textContent = $('#pct').textContent;
 }
 let exporting = false;
 const ERASER_R = 14;
@@ -2024,7 +2046,7 @@ function doRedo() {
   else for (const it of a.items) { const i = S.objs.indexOf(it.o); if (i >= 0) S.objs.splice(i, 1); }
   S.undo.push(a); markDirty(false, true); syncHistory(); persist();
 }
-function syncHistory() { $('#undo').disabled = $('#fqUndo').disabled = !S.undo.length; $('#redo').disabled = $('#fqRedo').disabled = !S.redo.length; }
+function syncHistory() { $('#undo').disabled = $('#fqUndo').disabled = $('#pUndo').disabled = !S.undo.length; $('#redo').disabled = $('#fqRedo').disabled = $('#pRedo').disabled = !S.redo.length; }
 
 /* ============================================================
    9. 입력 처리
@@ -2414,7 +2436,9 @@ function fqApply() {
   fq.fab.hidden = !(mode === 'fab' && !panelOpen);
   fqPlace(); syncMathBtn();
 }
-function fqSet(mode) { fq.st.mode = mode; fqSave(); fqApply(); if (mode === 'open') setTimeout(() => { try { fq.inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }, 60); }
+function fqSet(mode) {
+  if (mode === 'open' && fq.el.hidden) { fq.st.bar = null; fqApplyPos(fq.el, null); } // 열 때는 항상 가운데 아래에서 시작
+  fq.st.mode = mode; fqSave(); fqApply(); if (mode === 'open') setTimeout(() => { try { fq.inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }, 60); }
 function syncMathBtn() {
   const on = isMobile() ? (!mathEl.hidden || !fq.el.hidden) : !mathEl.hidden;
   $('#mathBtn').setAttribute('aria-pressed', String(on));
@@ -2490,16 +2514,24 @@ $('#fqUndo').addEventListener('click', doUndo); $('#fqRedo').addEventListener('c
 $('#fqZout').addEventListener('click', () => $('#zout').click()); $('#fqZin').addEventListener('click', () => $('#zin').click());
 $('#fqHome').addEventListener('click', () => $('#zhome').click()); $('#fqHelp').addEventListener('click', () => setHelp(true));
 $('#fqSave').addEventListener('click', (e) => toggleSaveMenu($('#fqSave'), e));
-let fqClearT = 0;
-function fqClearReset() { clearTimeout(fqClearT); fqClearT = 0; const b = $('#fqClear'); b.classList.remove('warn'); b.innerHTML = svg('trash'); b.setAttribute('aria-label', '전체 지우기'); }
-$('#fqClear').addEventListener('click', () => {
-  const b = $('#fqClear');
-  if (!S.objs.length) { toast('지울 필기가 없어요'); return; }
-  if (!fqClearT) { fqClearT = setTimeout(fqClearReset, 3000); b.classList.add('warn'); b.textContent = '한 번 더'; b.setAttribute('aria-label', '한 번 더 누르면 필기가 모두 지워져요'); return; }
-  fqClearReset();
-  const items = S.objs.map((o, i) => ({ o, i })); S.objs = [];
-  pushUndo({ type: 'del', items }); markDirty(false, true); toast('필기를 모두 지웠어요. 실행 취소로 되돌릴 수 있어요');
-});
+function wireClear(btn, narrow) {
+  let t = 0;
+  const reset = () => { clearTimeout(t); t = 0; btn.classList.remove('warn'); btn.innerHTML = svg('trash'); btn.setAttribute('aria-label', '전체 지우기'); };
+  btn.addEventListener('click', () => {
+    if (!S.objs.length) { toast('지울 필기가 없어요'); return; }
+    if (!t) { t = setTimeout(reset, 3000); btn.classList.add('warn'); btn.textContent = narrow; btn.setAttribute('aria-label', '한 번 더 누르면 필기가 모두 지워져요'); return; }
+    reset();
+    const items = S.objs.map((o, i) => ({ o, i })); S.objs = [];
+    pushUndo({ type: 'del', items }); markDirty(false, true); toast('필기를 모두 지웠어요. 실행 취소로 되돌릴 수 있어요');
+  });
+}
+wireClear($('#fqClear'), '한 번 더'); wireClear($('#pClear'), '한 번 더');
+const P_ICONS = { pUndo: 'undo', pRedo: 'redo', pZout: 'minus', pZin: 'plus', pHome: 'home', pSave: 'save', pClear: 'trash', pHelp: 'help' };
+for (const [id, ic] of Object.entries(P_ICONS)) $('#' + id).innerHTML = svg(ic);
+$('#pUndo').addEventListener('click', doUndo); $('#pRedo').addEventListener('click', doRedo);
+$('#pZout').addEventListener('click', () => $('#zout').click()); $('#pZin').addEventListener('click', () => $('#zin').click());
+$('#pHome').addEventListener('click', () => $('#zhome').click()); $('#pHelp').addEventListener('click', () => setHelp(true));
+$('#pSave').addEventListener('click', (e) => toggleSaveMenu($('#pSave'), e));
 
 function toggleMath() {
   if (!isMobile()) { setMathOpen(mathEl.hidden); return; }
@@ -2715,7 +2747,7 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => { if (e.key === ' ') { spaceDown = false; canvas.classList.toggle('hand', S.tool === 'hand'); } });
 document.addEventListener('pointerdown', (e) => {
-  if (!e.target.closest('.menu') && !e.target.closest('#saveBtn') && !e.target.closest('#fqSave') && !e.target.closest('[data-tool="solid"]')) closeMenus();
+  if (!e.target.closest('.menu') && !e.target.closest('#saveBtn') && !e.target.closest('#fqSave') && !e.target.closest('#pSave') && !e.target.closest('[data-tool="solid"]')) closeMenus();
 });
 
 /* ============================================================
