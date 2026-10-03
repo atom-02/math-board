@@ -2600,7 +2600,7 @@ function toggleMath() {
   fqSet(fq.el.hidden ? 'open' : 'fab');
 }
 $('#mathBtn').addEventListener('click', toggleMath);
-$('#mathClose').addEventListener('click', () => { setMathOpen(false); if (isMobile()) fqSet('open'); });
+$('#mathClose').addEventListener('click', () => { setMathOpen(false); if (isMobile()) fqSet('fab'); }); // x: 패널을 닫고 둥근 f(x) 버튼만 남긴다
 
 // 좁은 화면: 패널의 '새 식' 입력칸을 누르면 패널 대신 키패드가 있는 수식 입력창이 열린다
 function openFqFromPanel() {
