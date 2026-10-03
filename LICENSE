@@ -1,12 +1,15 @@
+수학 전자칠판 (math-board)
 Copyright (c) 2026 atom-math
 
-저작권은 atom-math에 있습니다.
+이 저작물은 크리에이티브 커먼즈 저작자표시-비영리 4.0 국제 라이선스(CC BY-NC 4.0)에 따라 이용할 수 있습니다.
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
 
-이 저장소의 소스 코드와 문서는 복제, 수정, 재배포를 자유롭게 할 수 있습니다.
-- 수정하거나 재배포할 때는 원본 소스 코드가 atom-math에 있다는 점을 밝혀야 합니다.
-- 영리 목적으로 사용하려는 경우에는 저작권자(atom-math)와 먼저 협의해야 합니다.
+- 라이선스 요약(한국어): https://creativecommons.org/licenses/by-nc/4.0/deed.ko
+- 라이선스 전문(한국어): https://creativecommons.org/licenses/by-nc/4.0/legalcode.ko
+- Legal code (English):  https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
-Copyright holder: atom-math.
-You may copy, modify and redistribute this software and its documentation freely, provided that
-- any modified or redistributed version states that the original source code is by atom-math, and
-- any commercial (for-profit) use is agreed with the copyright holder beforehand.
+요약 (법적 효력은 위 라이선스 전문에 따릅니다)
+- 허용: 복제, 수정, 재배포
+- 저작자표시: 저작자(atom-math)를 밝히고, 라이선스 링크를 제공하고, 변경했다면 변경 사실을 표시해야 합니다.
+  원본 소스 코드: https://github.com/atom-02/math-board
+- 비영리: 영리 목적으로는 이용할 수 없습니다. 영리 목적으로 쓰려면 저작권자(atom-math)와 먼저 협의해야 합니다.
