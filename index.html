@@ -2259,6 +2259,7 @@ const TOOLS = [
 ];
 const toolsEl = $('#tools');
 for (const t of TOOLS) {
+  if (t.id === 'shift') continue; // 도구줄에는 두지 않음(그래프의 이동·대칭을 켜면 자동 선택, 단축키 S)
   const b = document.createElement('button');
   b.className = 'btn'; b.dataset.tool = t.id; b.setAttribute('aria-pressed', 'false');
   b.setAttribute('aria-label', `${t.n} (${t.key})`); b.title = `${t.n} (${t.key})`; b.innerHTML = svg(t.id);
