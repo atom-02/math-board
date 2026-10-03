@@ -167,7 +167,13 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 #fq { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + var(--kb, 0px)); width: min(540px, calc(100% - 24px)); z-index: 12;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 8px 8px; }
 #fq[hidden], #fqFab[hidden] { display: none; }
-#fqPad { display: none; margin-top: 6px; }
+#fq #fqPad { display: none; margin-top: 6px; }
+#kdock { position: absolute; left: 0; right: 0; bottom: var(--kb, 0px); z-index: 14; padding: 8px 10px 10px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(0,0,0,.12); }
+#kdock[hidden] { display: none; }
+#kdock #fqPad { display: block; max-width: 640px; margin: 0 auto; }
+.fqpb { display: flex; gap: 6px; }
+.fqpb .mini { width: 38px; height: 30px; }
+#fqKbd2[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 #fq.padon #fqPad { display: block; }
 .fqpt { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .fqpt .seg button { min-height: 28px; padding: 2px 14px; }
@@ -284,7 +290,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
 #toast.on { opacity: 1; }
 
 @media (max-width: 720px) {
-  #math { left: 16px; right: 16px; top: auto; bottom: calc(16px + var(--kb, 0px)); width: auto; max-height: 48%; }
+  #math { left: 16px; right: 16px; top: auto; bottom: calc(16px + var(--kb, 0px) + var(--pad, 0px)); width: auto; max-height: min(48%, calc(100% - var(--pad, 0px) - 32px)); }
   .keys { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
@@ -335,7 +341,9 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
       </form>
       <div id="fqPad" aria-label="수식 키패드">
         <div class="fqpt"><div class="seg" role="group" aria-label="키패드 종류">
-          <button type="button" id="fqPg1" aria-pressed="true">기호</button><button type="button" id="fqPg2" aria-pressed="false">함수</button></div></div>
+          <button type="button" id="fqPg1" aria-pressed="true">기호</button><button type="button" id="fqPg2" aria-pressed="false">함수</button></div>
+          <span class="fqpb"><button type="button" class="mini" id="fqKbd2" aria-label="휴대폰 기본 키보드로 입력" aria-pressed="false" title="기본 키보드로 입력">⌨</button>
+          <button type="button" class="mini" id="fqHide" aria-label="키패드 닫기" title="키패드 닫기">⌄</button></span></div>
         <div class="fqpg"><div class="kg k4" id="fqL"></div><div class="kg k5" id="fqR"></div></div>
       </div>
       <div id="fqTools" role="toolbar" aria-label="보기·저장 도구">
@@ -352,6 +360,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
         <button type="button" class="btn" id="fqHelp" aria-label="도움말" title="도움말"></button>
       </div>
     </div>
+    <div id="kdock" hidden></div>
     <button type="button" id="fqFab" aria-label="수식 입력 열기" title="수식 입력" hidden>f(x)</button>
 
     <aside id="math" aria-label="좌표와 그래프">
@@ -2429,7 +2438,7 @@ const fq = { el: $('#fq'), fab: $('#fqFab'), inp: $('#fqIn'), kb: 0, st: { mode:
 try { const s = JSON.parse(localStorage.getItem(FQ_KEY) || 'null'); if (s && typeof s === 'object') { fq.st.mode = s.mode === 'open' ? 'open' : 'fab'; fq.st.os = !!s.os; for (const k of ['bar', 'fab', 'panel']) if (s[k] && isFinite(s[k].x) && isFinite(s[k].y)) fq.st[k] = { x: +s[k].x, y: +s[k].y }; } } catch (e) { /* 저장소를 못 쓰는 환경 */ }
 function fqSave() { try { localStorage.setItem(FQ_KEY, JSON.stringify(fq.st)); } catch (e) { /* 무시 */ } }
 function fqClampPos(el, p) {
-  const st = $('#stage'), w = st.clientWidth, h = st.clientHeight - fq.kb;
+  const st = $('#stage'), w = st.clientWidth, h = st.clientHeight - fq.kb - (el === mathEl ? fq.padH || 0 : 0);
   return { x: Math.round(Math.min(Math.max(0, p.x), Math.max(0, w - el.offsetWidth))), y: Math.round(Math.min(Math.max(0, p.y), Math.max(0, h - el.offsetHeight))) };
 }
 function fqApplyPos(el, p) {
@@ -2498,23 +2507,24 @@ const FQ_PAGES = {
 const FQ_NUM = [['7'], ['8'], ['9'], ['×', '*'], ['÷', '/'], ['4'], ['5'], ['6'], ['+'], ['−', '-'], ['1'], ['2'], ['3'], ['=', '='], ['⌫', 'BS', 1],
   ['0'], ['.'], ['←', 'L', 1], ['→', 'R', 1], ['↵', 'ENTER', 1]];
 function fqInsert(s) {
-  const inp = fq.inp;
+  const inp = fq.tgt || fq.inp;
   if (document.activeElement !== inp) { try { inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }
   const a = inp.selectionStart == null ? inp.value.length : inp.selectionStart, e = inp.selectionEnd == null ? a : inp.selectionEnd;
   if (s === ')' && a === e && inp.value[a] === ')') { inp.setSelectionRange(a + 1, a + 1); return; } // 이미 닫는 괄호가 있으면 건너뜀
   const k = s.indexOf('|');
   inp.setRangeText(k < 0 ? s : s.replace('|', ''), a, e, 'end');
   if (k >= 0) inp.setSelectionRange(a + k, a + k);
+  inp.dispatchEvent(new Event('input', { bubbles: true }));
 }
 function fqKey(code) {
-  const inp = fq.inp;
+  const inp = fq.tgt || fq.inp;
   if (document.activeElement !== inp) { try { inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }
   const a = inp.selectionStart == null ? inp.value.length : inp.selectionStart, e = inp.selectionEnd == null ? a : inp.selectionEnd;
-  if (code === 'BS') { if (a !== e) inp.setRangeText('', a, e, 'end'); else if (a > 0) inp.setRangeText('', a - 1, a, 'end'); }
+  if (code === 'BS') { if (a !== e) inp.setRangeText('', a, e, 'end'); else if (a > 0) inp.setRangeText('', a - 1, a, 'end'); inp.dispatchEvent(new Event('input', { bubbles: true })); }
   else if (code === 'L') { const p = a !== e ? a : Math.max(0, a - 1); inp.setSelectionRange(p, p); }
   else if (code === 'R') { const p = a !== e ? e : Math.min(inp.value.length, e + 1); inp.setSelectionRange(p, p); }
-  else if (code === 'CLR') { inp.value = ''; }
-  else if (code === 'ENTER') { $('#fqForm').requestSubmit(); }
+  else if (code === 'CLR') { inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+  else if (code === 'ENTER') { if (inp.form) inp.form.requestSubmit(); else inp.blur(); }
   else fqInsert(code);
 }
 function fqBuildPad(page) {
@@ -2531,17 +2541,40 @@ fqBuildPad(1);
 $('#fqPg1').addEventListener('click', () => fqBuildPad(1)); $('#fqPg2').addEventListener('click', () => fqBuildPad(2));
 // 키패드를 눌러도 입력칸의 포커스가 빠지지 않게 한다(입력칸 자체만 예외)
 fq.el.addEventListener('pointerdown', (e) => { if (e.target !== fq.inp) e.preventDefault(); });
+const kdock = $('#kdock'), fqPadEl = $('#fqPad');
+fq.tgt = fq.inp; fq.padH = 0;
+const panelField = (el) => !!(el && el.matches && el.matches('#math input[type="text"]'));
+function fqMarkInputs() {
+  const mode = isMobile() && !fq.st.os ? 'none' : 'text';
+  $$('#math input[type="text"]').forEach((i) => { i.inputMode = mode; });
+  fq.inp.inputMode = fq.st.os ? 'text' : 'none';
+}
 function fqPadSync() {
-  const show = !fq.st.os && document.activeElement === fq.inp;
-  fq.el.classList.toggle('padon', show); fqPlace();
+  const ae = document.activeElement, inBar = ae === fq.inp, inPanel = panelField(ae) && isMobile();
+  const show = !fq.st.os && (inBar || inPanel);
+  if (inPanel) fq.tgt = ae; else if (inBar) fq.tgt = fq.inp;
+  fq.el.classList.toggle('padon', show && inBar);
+  const dock = show && inPanel;
+  if (dock && fqPadEl.parentNode !== kdock) kdock.appendChild(fqPadEl);
+  if (!dock && fqPadEl.parentNode === kdock) fq.el.insertBefore(fqPadEl, $('#fqTools'));
+  kdock.hidden = !dock;
+  fq.padH = dock ? kdock.offsetHeight : 0;
+  document.documentElement.style.setProperty('--pad', fq.padH + 'px');
+  fqPlace();
+  if (dock) { try { ae.scrollIntoView({ block: 'nearest' }); } catch (e) { /* 무시 */ } }
 }
 function fqKbdMode() {
-  fq.inp.inputMode = fq.st.os ? 'text' : 'none';
-  $('#fqKbd').setAttribute('aria-pressed', String(!!fq.st.os)); fqPadSync();
+  $('#fqKbd').setAttribute('aria-pressed', String(!!fq.st.os)); $('#fqKbd2').setAttribute('aria-pressed', String(!!fq.st.os));
+  fqMarkInputs(); fqPadSync();
 }
 fq.inp.addEventListener('focus', fqPadSync);
 fq.inp.addEventListener('blur', () => setTimeout(fqPadSync, 150));
-$('#fqKbd').addEventListener('click', () => { fq.st.os = !fq.st.os; fqSave(); fqKbdMode(); try { fq.inp.blur(); fq.inp.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } });
+mathEl.addEventListener('focusin', () => setTimeout(fqPadSync, 0));
+mathEl.addEventListener('focusout', () => setTimeout(fqPadSync, 150));
+kdock.addEventListener('pointerdown', (e) => e.preventDefault());
+function fqToggleOs() { fq.st.os = !fq.st.os; fqSave(); fqKbdMode(); const t = fq.tgt || fq.inp; try { t.blur(); t.focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }
+$('#fqKbd').addEventListener('click', fqToggleOs); $('#fqKbd2').addEventListener('click', fqToggleOs);
+$('#fqHide').addEventListener('click', () => { const a = document.activeElement; if (a && a.blur) a.blur(); });
 fqKbdMode();
 $('#fqForm').addEventListener('submit', (e) => {
   e.preventDefault(); const v = fq.inp.value.trim(); if (!v) return;
@@ -2555,7 +2588,7 @@ function fqKeyboard() {
   if (kb !== fq.kb) { fq.kb = kb; document.documentElement.style.setProperty('--kb', kb + 'px'); fqPlace(); }
 }
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', fqKeyboard); window.visualViewport.addEventListener('scroll', fqKeyboard); }
-window.addEventListener('resize', () => { fqApply(); });
+window.addEventListener('resize', () => { fqApply(); fqMarkInputs(); fqPadSync(); });
 
 const FQ_ICONS = { fqUndo: 'undo', fqRedo: 'redo', fqZout: 'minus', fqZin: 'plus', fqHome: 'home', fqSave: 'save', fqClear: 'trash', fqHelp: 'help' };
 for (const [id, ic] of Object.entries(FQ_ICONS)) $('#' + id).innerHTML = svg(ic);
@@ -2731,6 +2764,7 @@ function renderGraphList() {
     li.append(dot, inp, eye, del, info, tr); ul.appendChild(li);
   }
   refreshInfos();
+  try { fqMarkInputs(); } catch (e) { /* 키패드 준비 전 */ }
 }
 function addGraph(src, color) {
   if (S.graphs.length >= 30) { toast('그래프는 30개까지 넣을 수 있어요'); return null; }
