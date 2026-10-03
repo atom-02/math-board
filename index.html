@@ -350,7 +350,7 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
         <button type="button" class="btn" id="fqHelp" aria-label="도움말" title="도움말"></button>
       </div>
     </div>
-    <button type="button" id="fqFab" aria-label="수식 입력 열기" title="수식 입력" hidden>f(x)</button>
+    <button type="button" id="fqFab" aria-label="좌표·그래프 열기" title="좌표·그래프" hidden>f(x)</button>
 
     <aside id="math" aria-label="좌표와 그래프">
       <div class="ph"><strong>좌표·그래프</strong><span class="phb">
@@ -2481,7 +2481,7 @@ function dragify(el, handle, opts) {
 dragify(fq.el, $('#fqHandle'), { save: (p) => { fq.st.bar = p; fqSave(); } });
 dragify(fq.fab, fq.fab, { fromButton: true, save: (p) => { fq.st.fab = p; fqSave(); } });
 // 열기는 pointerup이 아니라 click에서 처리한다: 입력창이 손가락 밑에 생겨도 같은 탭이 새 버튼을 누르지 않도록
-fq.fab.addEventListener('click', () => { if (fq.fab._dragged) return; fqSet('open'); });
+fq.fab.addEventListener('click', () => { if (fq.fab._dragged) return; setMathOpen(true); }); // f(x) 버튼 → 좌표·그래프 패널
 dragify(mathEl, mathEl.querySelector('.ph'), { onStart: () => { mathEl.style.width = mathEl.offsetWidth + 'px'; mathEl.style.maxHeight = 'calc(100% - 24px)'; }, save: (p) => { fq.st.panel = p; fqSave(); } });
 $('#fqMin').addEventListener('click', () => fqSet('fab'));
 $('#fqMore').addEventListener('click', () => { fq.st.mode = 'fab'; setMathOpen(true); });
