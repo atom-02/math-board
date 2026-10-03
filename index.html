@@ -167,6 +167,13 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 #fq { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + var(--kb, 0px)); width: min(540px, calc(100% - 24px)); z-index: 12;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 8px 8px; }
 #fq[hidden], #fqFab[hidden] { display: none; }
+#fqTools { display: flex; align-items: center; gap: 2px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+#fqTools::-webkit-scrollbar { display: none; }
+#fqTools .btn { width: 31px; height: 36px; flex: none; }
+#fqTools .btn.warn { width: auto; padding: 0 10px; font-size: 12px; }
+#fqTools .pct { min-width: 36px; text-align: center; font-size: 12px; flex: none; }
+#fqTools .gap { flex: 1 0 2px; }
+@media (max-width: 1279px) { .zgrp, .rgrp, .sepz, .bar > .spacer { display: none; } }
 .fqh { display: flex; align-items: center; gap: 6px; padding: 2px 0 4px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 .fqh strong { font-size: 13px; font-weight: 600; }
 .fqh .grip { flex: 1; display: flex; justify-content: center; }
@@ -280,15 +287,15 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
       <button class="btn" id="undo" aria-label="실행 취소 (Ctrl+Z)" title="실행 취소 (Ctrl+Z)"></button>
       <button class="btn" id="redo" aria-label="다시 실행 (Ctrl+Shift+Z)" title="다시 실행 (Ctrl+Shift+Z)"></button>
     </div>
-    <span class="sep"></span>
-    <div class="grp">
+    <span class="sep sepz"></span>
+    <div class="grp zgrp">
       <button class="btn" id="zout" aria-label="축소 (−)" title="축소 (−)"></button>
       <span class="pct" id="pct" aria-live="off">100%</span>
       <button class="btn" id="zin" aria-label="확대 (+)" title="확대 (+)"></button>
       <button class="btn" id="zhome" aria-label="원점으로 돌아가기 (0)" title="원점으로 돌아가기 (0)"></button>
     </div>
     <span class="spacer"></span>
-    <div class="grp">
+    <div class="grp rgrp">
       <button class="txtbtn" id="mathBtn" aria-pressed="false" title="좌표축과 그래프 (G)">그래프 f(x)</button>
       <button class="btn" id="saveBtn" aria-label="저장·불러오기" title="저장·불러오기" aria-haspopup="menu"></button>
       <button class="btn" id="clearBtn" aria-label="전체 지우기" title="전체 지우기"></button>
@@ -308,6 +315,19 @@ kbd { font-family: var(--font-mono); font-size: 12px; padding: 1px 7px; border: 
         <button type="submit">추가</button>
       </form>
       <div id="fqKeys" aria-label="수식 기호"></div>
+      <div id="fqTools" role="toolbar" aria-label="보기·저장 도구">
+        <button type="button" class="btn" id="fqUndo" aria-label="실행 취소" title="실행 취소"></button>
+        <button type="button" class="btn" id="fqRedo" aria-label="다시 실행" title="다시 실행"></button>
+        <span class="gap"></span>
+        <button type="button" class="btn" id="fqZout" aria-label="축소" title="축소"></button>
+        <span class="pct" id="fqPct">100%</span>
+        <button type="button" class="btn" id="fqZin" aria-label="확대" title="확대"></button>
+        <button type="button" class="btn" id="fqHome" aria-label="원점으로 돌아가기" title="원점으로"></button>
+        <span class="gap"></span>
+        <button type="button" class="btn" id="fqSave" aria-label="저장·불러오기" title="저장·불러오기" aria-haspopup="menu"></button>
+        <button type="button" class="btn" id="fqClear" aria-label="전체 지우기" title="전체 지우기"></button>
+        <button type="button" class="btn" id="fqHelp" aria-label="도움말" title="도움말"></button>
+      </div>
     </div>
     <button type="button" id="fqFab" aria-label="수식 입력 열기" title="수식 입력" hidden>f(x)</button>
 
@@ -1922,7 +1942,7 @@ function render() {
     ctx.beginPath(); ctx.arc(hover.x, hover.y, ERASER_R, 0, 6.2832);
     ctx.lineWidth = 1.5; ctx.strokeStyle = T.axis; ctx.fillStyle = 'rgba(128,128,128,.14)'; ctx.fill(); ctx.stroke();
   }
-  $('#pct').textContent = Math.round(V.k * 100) + '%';
+  $('#pct').textContent = Math.round(V.k * 100) + '%'; $('#fqPct').textContent = $('#pct').textContent;
 }
 let exporting = false;
 const ERASER_R = 14;
@@ -2004,7 +2024,7 @@ function doRedo() {
   else for (const it of a.items) { const i = S.objs.indexOf(it.o); if (i >= 0) S.objs.splice(i, 1); }
   S.undo.push(a); markDirty(false, true); syncHistory(); persist();
 }
-function syncHistory() { $('#undo').disabled = !S.undo.length; $('#redo').disabled = !S.redo.length; }
+function syncHistory() { $('#undo').disabled = $('#fqUndo').disabled = !S.undo.length; $('#redo').disabled = $('#fqRedo').disabled = !S.redo.length; }
 
 /* ============================================================
    9. 입력 처리
@@ -2244,8 +2264,10 @@ function setWidth(i) { S.wIdx = i; $$('#widths .wd').forEach((b) => b.setAttribu
 function placeMenu(menu, btn) {
   const a = $('#app').getBoundingClientRect(), r = btn.getBoundingClientRect();
   menu.hidden = false;
-  const mw = menu.offsetWidth;
-  menu.style.top = (r.bottom - a.top + 6) + 'px';
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let top = r.bottom - a.top + 6;
+  if (top + mh > a.height - 6) top = Math.max(6, r.top - a.top - mh - 6);
+  menu.style.top = top + 'px';
   menu.style.left = Math.max(8, Math.min(r.left - a.left, a.width - mw - 8)) + 'px';
 }
 function closeMenus() { $('#solidMenu').hidden = true; $('#saveMenu').hidden = true; }
@@ -2333,11 +2355,12 @@ function savePng() {
   exporting = true; render(); exporting = false;
   canvas.toBlob((blob) => { if (!blob) { toast('이미지를 만들지 못했어요'); return; } saveWith('칠판.png', blob, '이미지를 저장했어요'); render(); }, 'image/png');
 }
-$('#saveBtn').addEventListener('click', (e) => {
+function toggleSaveMenu(btn, e) {
   e.stopPropagation(); const m = $('#saveMenu');
   if (!m.hidden) { m.hidden = true; return; }
-  closeMenus(); buildSaveMenu(); placeMenu(m, $('#saveBtn'));
-});
+  closeMenus(); buildSaveMenu(); placeMenu(m, btn);
+}
+$('#saveBtn').addEventListener('click', (e) => toggleSaveMenu($('#saveBtn'), e));
 $('#fileIn').addEventListener('change', async (e) => {
   const f = e.target.files && e.target.files[0]; e.target.value = '';
   if (!f) return;
@@ -2360,7 +2383,7 @@ function setMathOpen(on) {
   }
   fqApply(); if (on) fqPlace();
 }
-const isMobile = () => window.innerWidth < 900;
+const isMobile = () => window.innerWidth < 1280; // 도구줄이 한 줄에 다 안 들어가는 화면
 
 /* ============================================================
    12-1. 수식 입력 플로팅 메뉴 (모바일): 칠판 위에 떠 있고, 끌어서 옮기고, 작은 버튼으로 줄일 수 있다
@@ -2416,13 +2439,15 @@ function dragify(el, handle, opts) {
   const end = (e) => {
     if (!d || e.pointerId !== d.id) return;
     const dd = d; d = null;
-    if (dd.moved) opts.save(dd.p); else if (opts.tap) opts.tap();
+    if (dd.moved) { el._dragged = true; setTimeout(() => { el._dragged = false; }, 60); opts.save(dd.p); }
   };
   handle.addEventListener('pointerup', end);
   handle.addEventListener('pointercancel', () => { d = null; });
 }
 dragify(fq.el, $('#fqHandle'), { save: (p) => { fq.st.bar = p; fqSave(); } });
-dragify(fq.fab, fq.fab, { fromButton: true, save: (p) => { fq.st.fab = p; fqSave(); }, tap: () => fqSet('open') });
+dragify(fq.fab, fq.fab, { fromButton: true, save: (p) => { fq.st.fab = p; fqSave(); } });
+// 열기는 pointerup이 아니라 click에서 처리한다: 입력창이 손가락 밑에 생겨도 같은 탭이 새 버튼을 누르지 않도록
+fq.fab.addEventListener('click', () => { if (fq.fab._dragged) return; fqSet('open'); });
 dragify(mathEl, mathEl.querySelector('.ph'), { onStart: () => { mathEl.style.width = mathEl.offsetWidth + 'px'; mathEl.style.maxHeight = 'calc(100% - 24px)'; }, save: (p) => { fq.st.panel = p; fqSave(); } });
 $('#fqMin').addEventListener('click', () => fqSet('fab'));
 $('#fqMore').addEventListener('click', () => { fq.st.mode = 'fab'; setMathOpen(true); });
@@ -2458,6 +2483,23 @@ function fqKeyboard() {
 }
 if (window.visualViewport) { window.visualViewport.addEventListener('resize', fqKeyboard); window.visualViewport.addEventListener('scroll', fqKeyboard); }
 window.addEventListener('resize', () => { fqApply(); });
+
+const FQ_ICONS = { fqUndo: 'undo', fqRedo: 'redo', fqZout: 'minus', fqZin: 'plus', fqHome: 'home', fqSave: 'save', fqClear: 'trash', fqHelp: 'help' };
+for (const [id, ic] of Object.entries(FQ_ICONS)) $('#' + id).innerHTML = svg(ic);
+$('#fqUndo').addEventListener('click', doUndo); $('#fqRedo').addEventListener('click', doRedo);
+$('#fqZout').addEventListener('click', () => $('#zout').click()); $('#fqZin').addEventListener('click', () => $('#zin').click());
+$('#fqHome').addEventListener('click', () => $('#zhome').click()); $('#fqHelp').addEventListener('click', () => setHelp(true));
+$('#fqSave').addEventListener('click', (e) => toggleSaveMenu($('#fqSave'), e));
+let fqClearT = 0;
+function fqClearReset() { clearTimeout(fqClearT); fqClearT = 0; const b = $('#fqClear'); b.classList.remove('warn'); b.innerHTML = svg('trash'); b.setAttribute('aria-label', '전체 지우기'); }
+$('#fqClear').addEventListener('click', () => {
+  const b = $('#fqClear');
+  if (!S.objs.length) { toast('지울 필기가 없어요'); return; }
+  if (!fqClearT) { fqClearT = setTimeout(fqClearReset, 3000); b.classList.add('warn'); b.textContent = '한 번 더'; b.setAttribute('aria-label', '한 번 더 누르면 필기가 모두 지워져요'); return; }
+  fqClearReset();
+  const items = S.objs.map((o, i) => ({ o, i })); S.objs = [];
+  pushUndo({ type: 'del', items }); markDirty(false, true); toast('필기를 모두 지웠어요. 실행 취소로 되돌릴 수 있어요');
+});
 
 function toggleMath() {
   if (!isMobile()) { setMathOpen(mathEl.hidden); return; }
@@ -2673,7 +2715,7 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => { if (e.key === ' ') { spaceDown = false; canvas.classList.toggle('hand', S.tool === 'hand'); } });
 document.addEventListener('pointerdown', (e) => {
-  if (!e.target.closest('.menu') && !e.target.closest('#saveBtn') && !e.target.closest('[data-tool="solid"]')) closeMenus();
+  if (!e.target.closest('.menu') && !e.target.closest('#saveBtn') && !e.target.closest('#fqSave') && !e.target.closest('[data-tool="solid"]')) closeMenus();
 });
 
 /* ============================================================
@@ -2691,7 +2733,7 @@ function init() {
     addGraph('y=x^3-3x', 'blue');
     addGraph('x^2+y^2=4', 'red');
   }
-  setMathOpen(window.innerWidth >= 900);
+  setMathOpen(window.innerWidth >= 1280);
   fqApply(); fqKeyboard();
   syncAll(); buildSaveMenu();
   resize();
