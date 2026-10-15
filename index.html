@@ -2507,7 +2507,7 @@ dragify(mathEl, mathEl.querySelector('.ph'), { onStart: () => { mathEl.style.wid
 $('#fqMin').addEventListener('click', () => fqSet('fab'));
 $('#fqMore').addEventListener('click', () => { fq.st.mode = 'fab'; setMathOpen(true); });
 const FQ_PAGES = {
-  1: [['x', 'x'], ['y', 'y'], ['π', 'pi'], ['e', 'e'], ['x²', '^2'], ['xⁿ', '^'], ['√', 'sqrt(|)'], ['∛', 'cbrt(|)'],
+  1: [['x', 'x'], ['y', 'y'], ['π', 'pi'], ['e', 'e'], ['□²', '^2'], ['□³', '^3'], ['√', 'sqrt(|)'], ['∛', 'cbrt(|)'],
     ['<', '<'], ['>', '>'], ['≤', '<='], ['≥', '>='], ['(', '('], [')', ')'], ['|x|', 'abs(|)'], [';', ';']],
   2: [['sin', 'sin(|)'], ['cos', 'cos(|)'], ['tan', 'tan(|)'], ['ln', 'ln(|)'], ['log', 'log(|)'], ['log₂', 'log2(|)'], ['eˣ', 'e^(|)'], ['⌊x⌋', 'floor(|)'],
     ['asin', 'asin(|)'], ['acos', 'acos(|)'], ['atan', 'atan(|)'], ['sgn', 'sgn(|)'], ['sec', 'sec(|)'], ['csc', 'csc(|)'], ['cot', 'cot(|)'], ['지움', 'CLR']],
@@ -2855,8 +2855,6 @@ function init() {
   try { const raw = localStorage.getItem(STORE_KEY); if (raw) { applySnapshot(JSON.parse(raw)); restored = true; } } catch (e) { restored = false; }
   if (!restored) {
     S.graphs = [];
-    addGraph('y=x^3-3x', 'blue');
-    addGraph('x^2+y^2=4', 'red');
   }
   setMathOpen(false);
   fqApply(); fqKeyboard();
